@@ -1,0 +1,42 @@
+<div class="loader" *ngIf="loaderService.isLoading | async">
+  <mat-progress-bar mode="query"></mat-progress-bar>
+</div>
+<div class="row" style="min-width:300px">
+  <div class="col-md-1"></div>
+  <form class="card col-md-10" [formGroup]="form" (ngSubmit)="edit()">
+    <div class="card-content">
+      <span class="card-title center-align">Изменить запись</span>
+      <div class="input-field">
+        <input id="musicName" required type="text" formControlName="musicName" [(ngModel)]="this.musicInfo.name">
+        <label for="musicName">*Название записи</label>
+        <span class="helper-text red-text" *ngIf="form.get('musicName').invalid && form.get('musicName').touched">
+          <span *ngIf="form.get('musicName').errors['required']">поле необходимо заполнить</span>
+          <span *ngIf="form.get('musicName').errors['maxlength'] && form.get('musicName').errors['maxlength']['requiredLength']">Максимум {{form.get('musicName').errors['maxlength']['requiredLength']}} символов</span>
+        </span>
+      </div>
+      <mat-form-field appearance="fill" style="width:100%">
+        <label>*Жанр музыки</label>
+        <mat-select id="musicGenreId" formControlName="musicGenreId" [(ngModel)]="this.musicInfo.genreId">
+          <mat-option *ngFor="let genre of musicGenres" [value]="genre.id">
+            {{genre.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="input-field">
+        <div>
+          <span *ngIf="!form.value.musicFileName">Оставить старый файл записи</span>
+        </div>
+        <input id="musicFileName" type="file" accept=".mp3" formControlName="musicFileName" (change)="changeMusicFile($event.target.files)">
+      </div>
+      <div class="input-field">
+        <div>
+          <span *ngIf="!form.value.musicImageName">Оставить старый файл картинки</span>
+        </div>
+        <input id="musicImageName" type="file" accept=".jpg, .png" formControlName="musicImageName" (change)="changeImageFile($event.target.files)">
+      </div>
+    </div>
+    <div class="card-action center-align">
+      <button type="submit" class="btn waves-effect waves-purple" [disabled]="form.invalid">Изменить</button>
+    </div>
+  </form>
+</div>

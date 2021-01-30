@@ -1,0 +1,11 @@
+.mtBtn:hover{
+    cursor:pointer;
+}
+
+.likeBtn {
+  transition: all .3s;
+}
+
+.likeBtn:hover {
+  color: #ff0033;
+}

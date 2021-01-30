@@ -1,0 +1,25 @@
+button, button:focus {
+  background-color: white;
+  color: black;
+  border: none
+}
+
+  button:hover {
+    background-color: lightgrey
+  }
+
+.input-field input:focus + label {
+  color: #9608fc !important;
+}
+
+.input-field input:focus {
+  border-bottom: 1px solid #9608fc !important;
+  box-shadow: 0 1px 0 0 #9608fc !important
+}
+
+.loader {
+  position: fixed;
+  width: 100%;
+  z-index: 99;
+}
+

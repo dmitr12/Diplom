@@ -1,0 +1,26 @@
+<div class="player">
+  <div class="audio-name">{{audioService.audioName}}</div>
+  <div class="align-items-center" style="display:inline-flex; width:100%;">
+    <div *ngIf="!audioService.isPlaying">
+      <mat-icon class="bt" (click)="audioService.play()">play_arrow</mat-icon>
+    </div>
+    <div *ngIf="audioService.isPlaying">
+      <mat-icon class="bt" (click)="audioService.pause()">pause</mat-icon>
+    </div>
+    <div class="time">{{audioService.currentTime}}</div>
+    <div class="input-range-music">
+      <input type="range" min="0" max="{{audioService.audioObj.duration}}" [value]="audioService.audioObj.currentTime" (mousedown)="audioService.mouseDown()" (mouseup)="audioService.mouseUp($event)">
+    </div>
+    <div class="time">{{audioService.duration}}</div>
+    <div *ngIf="!audioService.audioObj.muted">
+      <mat-icon class="bt" (click)="audioService.mute()">volume_up</mat-icon>
+    </div>
+    <div *ngIf="audioService.audioObj.muted">
+      <mat-icon class="bt" (click)="audioService.unmute()">volume_off</mat-icon>
+    </div>
+    <div class="input-range-sound">
+      <input input type="range" min="0" step="0.1" max="1" [(ngModel)]="audioService.audioObj.volume" (change)="audioService.changeVolume()">
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,51 @@
+<div class="row mt-5 mr-3 ml-3" style="min-width:300px">
+  <div class="col-sm-3 col-md-4"></div>
+  <form class="card col-sm-6 col-md-4" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="card-content">
+      <span class="card-title center-align">Регистрация пользователя</span>
+      <div class="input-field">
+        <input id="email" required type="email" formControlName="email" [ngClass]="{invalid: form.get('email').invalid && form.get('email').touched}">
+        <label for="email">Email:</label>
+        <span class="helper-text red-text" *ngIf="form.get('email').invalid && form.get('email').touched">
+          <span *ngIf="form.get('email').errors['required']">Заполните поле Email</span>
+          <span *ngIf="form.get('email').errors['email']">Некорректный Email</span>
+        </span>
+      </div>
+      <div class="input-field">
+        <input id="login" required type="text" formControlName="login" [ngClass]="{invalid: form.get('login').invalid && form.get('login').touched}">
+        <label for="login">Логин:</label>
+        <span class="helper-text red-text" *ngIf="form.get('login').invalid && form.get('login').touched">
+          <span *ngIf="form.get('login').errors['required']">Заполните поле Логин</span>
+          <span *ngIf="form.get('login').errors['minlength'] && form.get('login').errors['minlength']['requiredLength']">Минимум {{form.get('login').errors['minlength']['requiredLength']}} символа</span>
+        </span>
+      </div>
+      <div formGroupName="passwords">
+        <div class="input-field">
+          <input id="password" required type="password" formControlName="psw" [ngClass]="{invalid: form.get('passwords.psw').invalid && form.get('passwords.psw').touched}">
+          <label for="password">Пароль:</label>
+          <span class="helper-text red-text" *ngIf="form.get('passwords.psw').invalid && form.get('passwords.psw').touched">
+            <span *ngIf="form.get('passwords.psw').errors['required']">Заполните поле Пароль</span>
+            <span *ngIf="form.get('passwords.psw').errors['minlength'] && form.get('passwords.psw').errors['minlength']['requiredLength']">Минимум {{form.get('passwords.psw').errors['minlength']['requiredLength']}} символов</span>
+          </span>
+        </div>
+        <div class="input-field">
+          <input id="confirmpassword" required type="password" formControlName="confirmpsw" [ngClass]="{invalid: form.get('passwords.confirmpsw').invalid && form.get('passwords.confirmpsw').touched}">
+          <label for="confirmpassword">Подтверждение пароля:</label>
+          <span class="helper-text red-text" *ngIf="form.get('passwords.confirmpsw').invalid && form.get('passwords.confirmpsw').touched">
+            <span *ngIf="form.get('passwords.confirmpsw').errors['required']">Заполните поле Подтверждение пароля</span>
+            <span *ngIf="form.get('passwords.confirmpsw').errors['minlength'] && form.get('passwords.confirmpsw').errors['minlength']['requiredLength']">Минимум {{form.get('passwords.confirmpsw').errors['minlength']['requiredLength']}} символов</span>
+          </span>
+        </div>
+      </div>
+      <span class="helper-text red-text" *ngIf="form.get('passwords').invalid">
+        <span>Пароли должны совпадать</span>
+      </span>
+    </div>
+    <div class="card-action center-align">
+      <button type="submit" class="btn waves-effect waves-purple" [disabled]="form.invalid">Регистрация</button>
+    </div>
+  </form>
+</div>
+
+
+

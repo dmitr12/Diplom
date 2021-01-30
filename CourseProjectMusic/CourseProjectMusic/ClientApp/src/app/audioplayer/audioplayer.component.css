@@ -1,0 +1,32 @@
+.player {
+  border-radius: 10px;
+  background-color: rgb(150, 8, 252, 0.3);
+  min-width: 300px;
+}
+
+.time{
+    margin:5px;
+}
+
+.audio-name {
+  margin-left: 10px;
+  padding-top: 5px;
+}
+
+.bt {
+  margin: 5px;
+}
+
+.bt:hover{
+    cursor:pointer;
+}
+
+.input-range-music {
+  width: 100%;
+  margin: 5px;
+}
+
+.input-range-sound {
+  width: 30%;
+  margin: 5px;
+}

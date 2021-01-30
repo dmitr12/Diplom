@@ -1,0 +1,26 @@
+<div class="row pt-2" style="min-width: 300px">
+  <div class="col-sm-2 col-2 col-md-4"></div>
+  <div class="col-sm-8 col-8 col-md-4 card shadow" style="width: 18rem;">
+    <img class="card-img-top" src="{{data.imageUrl}}" alt="Card image cap">
+    <div class="card-body">
+      <h5 style="color: purple" class="card-title">Информация о музыке</h5>
+      <p class="card-text">Название: {{data.name}}</p>
+      <p class="card-text">Автор: {{data.userLogin}}</p>
+      <p class="card-text">Жанр: {{getMusicGenreName(data.genreId)}}</p>
+      <p class="card-text">Количество лайков: {{data.idOfUsersLike.length}}</p>
+    </div>
+    <div class="row">
+      <div class="col" style="font-size:150%; color:purple">
+        <mat-icon class="mtBtn" (click)="audioService.openFile(data.id, data.musicUrl, data.userLogin+'-'+data.name)" style="font-size:150%">play_circle_filled</mat-icon>
+      </div>
+      <div class="col-2"></div>
+      <div *ngIf="!liked" class="col" style="font-size:150%">
+        <mat-icon class="mtBtn likeBtn" (click)="addLike(data.id)" style="font-size:150%">thumb_up_alt</mat-icon>
+      </div>
+      <div *ngIf="liked" class="col" style="font-size:150%">
+        <mat-icon class="mtBtn likeBtn" (click)="deleteLike(data.id)" style="font-size:150%; color: #ff0033">thumb_up_alt</mat-icon>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,82 @@
+body {
+  padding: 10px;
+}
+
+.context-menu {
+  cursor: default;
+  border-radius: 50%;
+}
+
+.collection_element {
+  border: 1px solid purple;
+  border-radius: 10px;
+  min-width: 300px;
+  transition: all .3s;
+}
+
+  .collection_element:hover {
+    background-color: rgb(150, 8, 252, 0.3)
+  }
+
+button, button:focus {
+  background-color: white;
+  color: black;
+  border: none
+}
+.crd {
+  border: 1px solid rgb(127, 16, 179, 0.1);
+  transition: all .3s;
+}
+
+  .crd:hover {
+    border: 1px solid rgb(127, 16, 179);
+  }
+
+.cardText {
+  font-size: 75%;
+  border-top: 1px solid rgb(127, 16, 179, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  transition: all .3s;
+}
+
+  .cardText:hover {
+    border-top: 1px solid rgb(127, 16, 179);
+  }
+
+button:hover {
+  background-color: lightgrey
+}
+
+.input-field input:focus + label {
+  color: #9608fc !important;
+}
+
+.input-field input:focus {
+  border-bottom: 1px solid #9608fc !important;
+  box-shadow: 0 1px 0 0 #9608fc !important
+}
+
+.round {
+  border-radius: 50%;
+  width: 65px;
+  height: 65px;
+  margin: 5px;
+}
+
+.example-viewport {
+  height: 200px;
+  width: 200px;
+  border: 1px solid black;
+}
+
+.example-item {
+  height: 50px;
+}
+
+.loader {
+  position: fixed;
+  width: 100%;
+  z-index: 99;
+}
