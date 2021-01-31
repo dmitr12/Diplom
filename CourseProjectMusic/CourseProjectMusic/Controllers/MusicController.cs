@@ -137,7 +137,7 @@ namespace CourseProjectMusic.Controllers
             string sharingLinkImage = "";
             try
             {
-                using (var dbx=new DropboxClient("DOQxivsHU0IAAAAAAAAAATKvLBL5W4hcPBmeK-zbd3QJdGZMSr6cz2PY0kMOsJ6t"))
+                using (var dbx=new DropboxClient(config.GetSection("DropBoxToken").Value))
                 {
                     var list= dbx.Files.ListFolderAsync(string.Empty).Result;
                     if(list.Entries.Where(i => i.Name == musicFileName).FirstOrDefault() != null)
@@ -184,7 +184,7 @@ namespace CourseProjectMusic.Controllers
             string dateTimeNow = $"{DateTime.Now.Day}.{DateTime.Now.Month}.{DateTime.Now.Year} {DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}";
             try
             {
-                using (var dbx = new DropboxClient("DOQxivsHU0IAAAAAAAAAATKvLBL5W4hcPBmeK-zbd3QJdGZMSr6cz2PY0kMOsJ6t"))
+                using (var dbx = new DropboxClient(config.GetSection("DropBoxToken").Value))
                 {
                     var list = dbx.Files.ListFolderAsync(string.Empty).Result;
                     if (model.MusicFile != null)
@@ -230,7 +230,7 @@ namespace CourseProjectMusic.Controllers
             {
                 try
                 {
-                    using (var dbx = new DropboxClient("DOQxivsHU0IAAAAAAAAAATKvLBL5W4hcPBmeK-zbd3QJdGZMSr6cz2PY0kMOsJ6t"))
+                    using (var dbx = new DropboxClient(config.GetSection("DropBoxToken").Value))
                     {
                         var list = dbx.Files.ListFolderAsync(string.Empty).Result;
                         if (list.Entries.Where(i => i.Name == music.MusicFileName).FirstOrDefault() != null)
