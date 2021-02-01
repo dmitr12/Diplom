@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
+using CourseProjectMusic.Interfaces;
 using CourseProjectMusic.Models;
 using CourseProjectMusic.Utils;
 using Dropbox.Api;
@@ -26,13 +27,13 @@ namespace CourseProjectMusic.Controllers
     {
         private readonly DataBaseContext db;
         private readonly IConfiguration config;
-        private readonly IOptions<StorageConfiguration> storageConfig;
+        private ICloud cloud;
         private int UserId => int.Parse(User.Claims.Single(cl => cl.Type == ClaimTypes.NameIdentifier).Value);
-        public MusicController(DataBaseContext db, IConfiguration config, IOptions<StorageConfiguration> sc)
+        public MusicController(DataBaseContext db, IConfiguration config, ICloud cloud)
         {
             this.db = db;
             this.config = config;
-            storageConfig = sc;
+            this.cloud = cloud;
         }
 
         [HttpGet("FilterMusic")]
@@ -130,43 +131,35 @@ namespace CourseProjectMusic.Controllers
         {
             User user = await db.Users.FindAsync(UserId);
             string dateTimeNow = $"{DateTime.Now.Day}.{DateTime.Now.Month}.{DateTime.Now.Year} {DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}";
-            if (await db.Musics.Where(m=>m.UserId==user.UserId && m.MusicName==model.MusicName).FirstOrDefaultAsync()!=null)
+            if (await db.Musics.Where(m => m.UserId == user.UserId && m.MusicName == model.MusicName).FirstOrDefaultAsync() != null)
                 return Ok(new { msg = $"У вас уже есть запись с названием {model.MusicName}" });
             string musicFileName = $"{user.Login}_{dateTimeNow}_" + model.MusicFile.FileName;
             string sharingLinkMusic = "";
             string sharingLinkImage = "";
             try
             {
-                using (var dbx=new DropboxClient(config.GetSection("DropBoxToken").Value))
+                if(await cloud.IfFileExists("", musicFileName))
+                    return Ok(new { msg = $"В вашем хранилище уже есть файл {model.MusicFile.FileName}" });
+                if (model.MusicImageFile != null)
                 {
-                    var list= dbx.Files.ListFolderAsync(string.Empty).Result;
-                    if(list.Entries.Where(i => i.Name == musicFileName).FirstOrDefault() != null)
-                        return Ok(new { msg = $"В вашем хранилище уже есть файл {model.MusicFile.FileName}" });
-                    if (model.MusicImageFile != null)
-                    {
-                        if(list.Entries.Where(i=>i.Name== $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName).FirstOrDefault()!=null)
-                            return Ok(new { msg = $"В вашем хранилище уже есть файл {model.MusicImageFile.FileName}" });
-                        await dbx.Files.UploadAsync("/" + $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName, WriteMode.Overwrite.Instance, body: model.MusicImageFile.OpenReadStream());
-                        var img = dbx.Sharing.CreateSharedLinkWithSettingsAsync("/" + $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName).Result;
-                        sharingLinkImage = img.Url.Remove(img.Url.Length - 1) + "1";
-                    }
-                    await dbx.Files.UploadAsync("/" + musicFileName, WriteMode.Overwrite.Instance, body: model.MusicFile.OpenReadStream());
-                    var msc = dbx.Sharing.CreateSharedLinkAsync("/" + musicFileName).Result;
-                    sharingLinkMusic= msc.Url.Remove(msc.Url.Length - 1) + "1";
-                    db.Musics.Add(new Music
-                    {
-                        MusicName = model.MusicName,
-                        MusicFileName = musicFileName,
-                        MusicUrl=sharingLinkMusic,
-                        MusicImageName = model.MusicImageFile == null ? "default.png" : $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName,
-                        MusicImageUrl= model.MusicImageFile == null? "https://www.dropbox.com/s/jattf04mjk4x903/default.png?dl=1" : sharingLinkImage,
-                        UserId = user.UserId,
-                        DateOfPublication = DateTime.Now.Date,
-                        MusicGenreId = model.MusicGenreId
-                    });
-                    await db.SaveChangesAsync();
-                    return Ok(new { msg = "" });
+                    if(await cloud.IfFileExists("", $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName))
+                        return Ok(new { msg = $"В вашем хранилище уже есть файл {model.MusicImageFile.FileName}" });
+                    sharingLinkImage = await cloud.AddFile("", $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName, model.MusicImageFile.OpenReadStream());
                 }
+                sharingLinkMusic = await cloud.AddFile("", musicFileName, model.MusicFile.OpenReadStream());
+                db.Musics.Add(new Music
+                {
+                    MusicName = model.MusicName,
+                    MusicFileName = musicFileName,
+                    MusicUrl = sharingLinkMusic,
+                    MusicImageName = model.MusicImageFile == null ? "default.png" : $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName,
+                    MusicImageUrl = model.MusicImageFile == null ? "https://www.dropbox.com/s/jattf04mjk4x903/default.png?dl=1" : sharingLinkImage,
+                    UserId = user.UserId,
+                    DateOfPublication = DateTime.Now.Date,
+                    MusicGenreId = model.MusicGenreId
+                });
+                await db.SaveChangesAsync();
+                return Ok(new { msg = "" });
             }
             catch
             {
@@ -184,34 +177,30 @@ namespace CourseProjectMusic.Controllers
             string dateTimeNow = $"{DateTime.Now.Day}.{DateTime.Now.Month}.{DateTime.Now.Year} {DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}";
             try
             {
-                using (var dbx = new DropboxClient(config.GetSection("DropBoxToken").Value))
+                if (model.MusicFile != null)
                 {
-                    var list = dbx.Files.ListFolderAsync(string.Empty).Result;
-                    if (model.MusicFile != null)
+                    musicFileName = $"{user.Login}_{dateTimeNow}_" + model.MusicFile.FileName;
+                    music.MusicUrl=await cloud.EditFile("", music.MusicFileName, "", musicFileName, model.MusicFile.OpenReadStream());
+                    music.MusicFileName = musicFileName;
+                }
+                if (model.MusicImageFile != null)
+                {
+                    imageFileName = $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName;
+                    if (music.MusicImageName != "default.png")
                     {
-                        musicFileName = $"{user.Login}_{dateTimeNow}_" + model.MusicFile.FileName;
-                        if (list.Entries.Where(i => i.Name == music.MusicFileName).FirstOrDefault() != null)
-                            await dbx.Files.DeleteAsync("/" + music.MusicFileName);
-                        await dbx.Files.UploadAsync("/" + musicFileName, WriteMode.Overwrite.Instance, body: model.MusicFile.OpenReadStream());
-                        var msc = dbx.Sharing.CreateSharedLinkAsync("/" + musicFileName).Result;
-                        music.MusicUrl = msc.Url.Remove(msc.Url.Length - 1) + "1";
-                        music.MusicFileName = musicFileName;
-                    }
-                    if (model.MusicImageFile != null)
-                    {
-                        imageFileName = $"{user.Login}_music_{dateTimeNow}_" + model.MusicImageFile.FileName;
-                        if (list.Entries.Where(i => i.Name == music.MusicImageName && i.Name!="default.png").FirstOrDefault() != null)
-                            await dbx.Files.DeleteAsync("/" + music.MusicImageName);
-                        await dbx.Files.UploadAsync("/" + imageFileName, WriteMode.Overwrite.Instance, body: model.MusicImageFile.OpenReadStream());
-                        var msc = dbx.Sharing.CreateSharedLinkAsync("/" + imageFileName).Result;
-                        music.MusicImageUrl = msc.Url.Remove(msc.Url.Length - 1) + "1";
+                        music.MusicImageUrl = await cloud.EditFile("",music.MusicImageName,"",imageFileName,model.MusicImageFile.OpenReadStream());
                         music.MusicImageName = imageFileName;
                     }
-                    music.MusicName = model.MusicName;
-                    music.MusicGenreId = model.MusicGenreId;
-                    await db.SaveChangesAsync();
-                    return Ok(new { msg = "" });
+                    else
+                    {
+                        music.MusicImageUrl = await cloud.AddFile("", imageFileName, model.MusicImageFile.OpenReadStream());
+                        music.MusicImageName = imageFileName;
+                    }
                 }
+                music.MusicName = model.MusicName;
+                music.MusicGenreId = model.MusicGenreId;
+                await db.SaveChangesAsync();
+                return Ok(new { msg = "" });
             }
             catch
             {
@@ -230,16 +219,11 @@ namespace CourseProjectMusic.Controllers
             {
                 try
                 {
-                    using (var dbx = new DropboxClient(config.GetSection("DropBoxToken").Value))
-                    {
-                        var list = dbx.Files.ListFolderAsync(string.Empty).Result;
-                        if (list.Entries.Where(i => i.Name == music.MusicFileName).FirstOrDefault() != null)
-                            await dbx.Files.DeleteAsync("/" + music.MusicFileName);
-                        if (list.Entries.Where(i => i.Name == music.MusicImageName && i.Name != "default.png").FirstOrDefault() != null)
-                            await dbx.Files.DeleteAsync("/" + music.MusicImageName);
-                        db.Musics.Remove(music);
-                        await db.SaveChangesAsync();
-                    }
+                    await cloud.DeleteFile("",music.MusicFileName);
+                    if (music.MusicImageName != "default.png")
+                        await cloud.DeleteFile("", music.MusicImageName);
+                    db.Musics.Remove(music);
+                    await db.SaveChangesAsync();
                 }
                 catch
                 {

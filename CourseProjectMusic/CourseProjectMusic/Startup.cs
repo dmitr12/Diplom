@@ -1,3 +1,5 @@
+using CourseProjectMusic.DI;
+using CourseProjectMusic.Interfaces;
 using CourseProjectMusic.Models;
 using CourseProjectMusic.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +27,7 @@ namespace CourseProjectMusic
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddScoped<ICloud, DropBoxClass>();
             services.Configure<AuthOptions>(Configuration.GetSection("Auth"));
             services.AddCors(options =>
             {
