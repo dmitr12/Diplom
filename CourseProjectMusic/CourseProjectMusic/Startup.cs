@@ -28,6 +28,7 @@ namespace CourseProjectMusic
         {
             services.AddControllersWithViews();
             services.AddScoped<ICloud, DropBoxClass>();
+            services.AddScoped<IMailService, MailService>();
             services.Configure<AuthOptions>(Configuration.GetSection("Auth"));
             services.AddCors(options =>
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CourseProjectMusic.Interfaces;
 using CourseProjectMusic.Models;
 using CourseProjectMusic.Utils;
 using Microsoft.AspNetCore.Http;
@@ -18,12 +19,14 @@ namespace CourseProjectMusic.Controllers
     public class RegisterUserController : ControllerBase
     {
         DataBaseContext db;
-        private readonly IOptions<StorageConfiguration> storageConfig;
+        private IMailService mailService;
+        private IOptions<AuthOptions> authOptions;
 
-        public RegisterUserController(DataBaseContext db, IOptions<StorageConfiguration> sc)
+        public RegisterUserController(DataBaseContext db, IMailService mailService, IOptions<AuthOptions> authOptions)
         {
             this.db = db;
-            storageConfig = sc;
+            this.mailService = mailService;
+            this.authOptions = authOptions;
         }
 
         [HttpPost]
@@ -38,19 +41,38 @@ namespace CourseProjectMusic.Controllers
                 if(us!=null)
                     return Ok(new { msg = $"Пользователь с {model.Login} уже зарегистрирован" });
                 User user = new User { Mail = model.Mail, Login = model.Login, Password = HashClass.GetHash(model.Password),
-                    RoleId=1, Avatar="user_icon.png"};
+                    RoleId=1, IsMailConfirmed=false};
                 try
                 {
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
+                    MailClass mailClass = new MailClass();
+                    mailClass.Subject = "Подтверждение почты";
+                    mailClass.Body = mailService.GetMailBody(authOptions.Value.Issuer+ $"api/RegisterUser/ConfirmEmail?username={model.Login}", model.Login);
+                    mailClass.ToMails = new List<string>()
+                    {
+                        model.Mail
+                    };
+                    await mailService.SendMail(mailClass);
+                    return Ok(new { msg = $"Регистрация прошла успешно, на {model.Mail} было отправлено письмо для подтверждения почты" });
                 }
                 catch (Exception ex)
                 {
                     return BadRequest(ex.InnerException.Message);
                 }
-                return Ok(new {msg=""});
             }
             return BadRequest();
+        }
+
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string username)
+        {
+            User user = await db.Users.Where(u=>u.Login==username).FirstOrDefaultAsync();
+            if(user==null)
+                return Ok(new { message = "Неверный пользователь" });
+            user.IsMailConfirmed = true;
+            await db.SaveChangesAsync();
+            return Ok(new { message = "Почта успешно подтверждена" });
         }
     }
 }

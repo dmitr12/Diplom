@@ -1,4 +1,4 @@
-import { Injectable, Inject, OnInit } from '@angular/core';
+import { Injectable, Inject, OnInit, Input } from '@angular/core';
 import * as moment from 'moment';
 import { API_URL } from '../app-injection-tokens';
 
@@ -29,14 +29,14 @@ export class AudioService {
     this.audioObj.preload = "auto"
     this.audioObj.load();
     this.play();
-    this.audioObj.onended=function() {
-      alert("end")
-    }
+    this.audioObj.onended = function () {
+      this.clearMusic()
+    }.bind(this)
   }
 
   play() {
-    this.updateProgress();
     if (this.audioObj.src) {
+      this.updateProgress();
       this.audioObj.play();
       if (this.currentAudioFileName)
         this.isPlaying = true;
@@ -45,10 +45,12 @@ export class AudioService {
 
   clearMusic() {
     this.pause();
+    clearTimeout(this.delay);
     this.audioObj = new Audio();
     this.audioName = "";
     this.duration = "00:00";
     this.currentTime = "00:00";
+    this.isPlaying = false;
   }
 
   pause() {
